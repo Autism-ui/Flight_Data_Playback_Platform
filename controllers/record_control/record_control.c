@@ -121,10 +121,17 @@ int main(int argc, char **argv)
     WbFieldRef follow_Type = wb_supervisor_node_get_field(view_node, "followType");
     WbFieldRef follow_Name = wb_supervisor_node_get_field(view_node, "follow");
     wb_supervisor_field_set_sf_string(follow_Name, "Plane");
-
+  
     /* World and Object Initialize End */
     int timestep = (int)wb_robot_get_basic_time_step();
+    char str_H[20],str_T[20];
+    memset(str_H,0,sizeof(str_H));
+    memset(str_T,0,sizeof(str_T));
     wb_keyboard_enable(timestep);
+    wb_supervisor_set_label(1,"t:",0.7,0.15,0.1,0x00ff,0.1,"Arial");
+    wb_supervisor_set_label(3,"s",0.9,0.15,0.1,0xff8800,0.1,"Arial");
+    wb_supervisor_set_label(4,"H:",0.7,0.2,0.1,0x00ff,0.1,"Arial");
+    wb_supervisor_set_label(6,"m",0.9,0.2,0.1,0xff8800,0.1,"Arial");
     /* main loop
      * Perform simulation steps of TIME_STEP milliseconds
      * and leave the loop when the simulation is over
@@ -150,18 +157,22 @@ int main(int argc, char **argv)
                 }
                 break;
             case WB_KEYBOARD_DOWN:
-                index = 0;
-                quaternion_axis(&quaternion[index]);
-                H[index] = H[index] > H[0] ? H[index]:H[0];
-                data_pos[2] = H[index] * scale + altimetric_compensation;
-
-                data_rot[0] = axis_angle.x;
-                data_rot[1] = axis_angle.y;
-                data_rot[2] = axis_angle.z;
-                data_rot[3] = axis_angle.angle;
+                index = -1;
+                // quaternion_axis(&quaternion[index]);
+                // H[index] = H[index] > H[0] ? H[index]:H[0];
+                // data_pos[2] = H[index] * scale + altimetric_compensation;
+                data_pos[2] = H[0] * scale + altimetric_compensation;
+                // data_rot[0] = axis_angle.x;
+                // data_rot[1] = axis_angle.y;
+                // data_rot[2] = axis_angle.z;
+                // data_rot[3] = axis_angle.angle;
+                data_rot[0] = 0;
+                data_rot[1] = 1;
+                data_rot[2] = 0;
+                data_rot[3] = 0;
                 if (vision_mode == 0)
                 {
-                    viewpos_follow[2] = 0.479 + H[index] * scale + altimetric_compensation;
+                    viewpos_follow[2] = 0.479 + H[0] * scale + altimetric_compensation;
                     wb_supervisor_field_set_sf_vec3f(view_pos, viewpos_follow);
                 }
                 wb_supervisor_field_set_sf_vec3f(pos, data_pos);
@@ -235,6 +246,10 @@ int main(int argc, char **argv)
             }
             key = wb_keyboard_get_key();
         }
+        sprintf(str_H,"%.2f",H[index]);
+        sprintf(str_T,"%.3f",t[index]);
+        wb_supervisor_set_label(2,str_T,0.75,0.15,0.1,0xff8800,0.1,"Arial");
+        wb_supervisor_set_label(5,str_H,0.75,0.2,0.1,0xff8800,0.1,"Arial");
     };
     /* This is necessary to cleanup webots resources */
     wb_robot_cleanup();
@@ -371,7 +386,10 @@ void automode(int ms)
     WbFieldRef follow_Type = wb_supervisor_node_get_field(view_node, "followType");
     WbFieldRef follow_Name = wb_supervisor_node_get_field(view_node, "follow");
     wb_supervisor_field_set_sf_string(follow_Name, "Plane");
-
+  
+    char str_H[10],str_T[10];
+    memset(str_H,0,sizeof(str_H));
+    memset(str_T,0,sizeof(str_T));
     while ((wb_robot_step(ms) != -1) && automatic == 1)
     {
         quaternion_axis(&quaternion[index]);
@@ -424,6 +442,10 @@ void automode(int ms)
             printf("Auto Mode is Over\n");
             break;
         }
+        sprintf(str_H,"%.2f",H[index]);
+        sprintf(str_T,"%.3f",t[index]);
+        wb_supervisor_set_label(2,str_T,0.75,0.15,0.1,0xff8800,0.1,"Arial");
+        wb_supervisor_set_label(5,str_H,0.75,0.2,0.1,0xff8800,0.1,"Arial");
     }
 }
 inline void calcrow_csv()
